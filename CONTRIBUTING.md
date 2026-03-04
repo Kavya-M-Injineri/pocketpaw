@@ -46,7 +46,12 @@ If you're new and want to contribute, check [`good first issue`](https://github.
    ```bash
    uv sync --dev
    ```
-4. **Run the app** to verify your setup:
+4. **Install pre-commit hooks** (runs ruff lint/format and tests on every commit):
+   ```bash
+   uv pip install pre-commit
+   pre-commit install
+   ```
+5. **Run the app** to verify your setup:
    ```bash
    uv run pocketpaw
    ```
@@ -79,7 +84,20 @@ uv run ruff format .
 
 # Type check
 uv run mypy .
+
+# Run pre-commit hooks manually (on all files)
+pre-commit run --all-files
 ```
+
+### Pre-commit hooks
+
+This repo uses [pre-commit](https://pre-commit.com/) to catch issues before they hit CI. The hooks run automatically on `git commit`:
+
+1. **ruff** - lints Python files and auto-fixes what it can
+2. **ruff-format** - enforces consistent code formatting
+3. **pytest** - runs the full test suite (excluding E2E)
+
+If a hook fails, the commit is blocked. Fix the issue and try again. To skip hooks in an emergency: `git commit --no-verify` (please don't make this a habit).
 
 ## Project structure
 
@@ -161,6 +179,7 @@ Keep the subject line under 72 characters. Add a body if the change needs explan
 
 - [ ] Branch is based on `dev` (not `main`)
 - [ ] PR targets the `dev` branch
+- [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
 - [ ] Tests pass (`uv run pytest --ignore=tests/e2e`)
 - [ ] Linting passes (`uv run ruff check .`)
 - [ ] No secrets or credentials in the diff

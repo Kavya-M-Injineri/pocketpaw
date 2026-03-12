@@ -22,8 +22,22 @@ def _get_audio_dir() -> Path:
     return d
 
 
+async def synthesize_speech(text: str) -> str | None:
+    """Standalone helper: synthesize text to an audio file using the configured TTS provider.
+
+    Returns the output file path on success, or None on failure.
+    Designed for use by the agent loop (auto-TTS for voice replies).
+    """
+    tool = TextToSpeechTool()
+    await tool.execute(text=text)
+    return tool._last_generated_path
+
+
 class TextToSpeechTool(BaseTool):
     """Convert text to speech audio file."""
+
+    def __init__(self) -> None:
+        self._last_generated_path: str | None = None
 
     @property
     def name(self) -> str:
@@ -107,6 +121,7 @@ class TextToSpeechTool(BaseTool):
             output_path = _get_audio_dir() / filename
             output_path.write_bytes(resp.content)
 
+            self._last_generated_path = str(output_path)
             return self._media_result(
                 str(output_path), f"Audio generated ({len(resp.content)} bytes)"
             )
@@ -120,39 +135,42 @@ class TextToSpeechTool(BaseTool):
         """Generate speech using ElevenLabs API."""
         settings = get_settings()
         api_key = settings.elevenlabs_api_key
+        voice = "pNInz6obpgDQGcFmaJgB"
         if not api_key:
             return self._error(
                 "ElevenLabs API key not configured. Set POCKETPAW_ELEVENLABS_API_KEY."
             )
 
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=60) as client:
                 resp = await client.post(
-                    f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",
+                    f"https://api.elevenlabs.io/v1/text-to-speech/{voice}/stream",
                     headers={
                         "xi-api-key": api_key,
                         "Content-Type": "application/json",
                     },
+                    params={"output_format": "mp3_44100_128"},
                     json={
                         "text": text[:5000],
-                        "model_id": "eleven_monolingual_v1",
+                        "model_id": "eleven_multilingual_v2",
                     },
                 )
                 resp.raise_for_status()
+                audio_bytes = resp.content
 
-            # Save to file
             filename = f"tts_{uuid.uuid4().hex[:8]}.mp3"
             output_path = _get_audio_dir() / filename
-            output_path.write_bytes(resp.content)
+            output_path.write_bytes(audio_bytes)
 
-            return self._media_result(
-                str(output_path), f"Audio generated ({len(resp.content)} bytes)"
-            )
+            logger.info("ElevenLabs TTS: generated %s (%d bytes)", filename, len(audio_bytes))
+            self._last_generated_path = str(output_path)
+            return self._media_result(str(output_path))
 
         except httpx.HTTPStatusError as e:
-            return self._error(f"ElevenLabs error: {e.response.status_code}")
+            logger.error("ElevenLabs TTS error: %s", e.response.status_code)
+            return self._error(f"ElevenLabs TTS error: {e.response.status_code}")
         except Exception as e:
-            return self._error(f"TTS failed: {e}")
+            return self._error(f"ElevenLabs TTS failed: {e}")
 
     async def _tts_sarvam(self, text: str, voice: str) -> str:
         """Generate speech using Sarvam AI Bulbul TTS."""
@@ -189,6 +207,7 @@ class TextToSpeechTool(BaseTool):
             output_path = _get_audio_dir() / filename
             output_path.write_bytes(audio_bytes)
 
+            self._last_generated_path = str(output_path)
             return self._media_result(
                 str(output_path), f"Audio generated ({len(audio_bytes)} bytes)"
             )

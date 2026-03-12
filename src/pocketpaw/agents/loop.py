@@ -63,6 +63,9 @@ _AUDIO_LINK_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Audio file extensions for voice message detection
+_AUDIO_EXTS = {".ogg", ".oga", ".mp3", ".wav", ".m4a", ".opus", ".aac", ".flac"}
+
 
 def _strip_tts_links(text: str) -> str:
     """Remove generated-audio markdown links and bare media tags from LLM text output."""
@@ -422,7 +425,6 @@ class AgentLoop:
 
             # 1b. Inject inbound media file paths so the agent can use them
             # Also detect whether this is a voice message so we can auto-TTS the reply.
-            _AUDIO_EXTS = {".ogg", ".oga", ".mp3", ".wav", ".m4a", ".opus", ".aac", ".flac"}
             is_voice_message = any(
                 Path(p).suffix.lower() in _AUDIO_EXTS for p in (message.media or [])
             )
@@ -682,7 +684,7 @@ class AgentLoop:
                 and self.settings.voice_reply_enabled
             ):
                 try:
-                    from pocketpaw.tools.builtin.tts import synthesize_speech
+                    from pocketpaw.tools.builtin.voice import synthesize_speech
 
                     tts_path = await synthesize_speech(full_response)
                     if tts_path:

@@ -77,8 +77,6 @@ class SpeechToTextTool(BaseTool):
         audio_path = Path(audio_file).expanduser()
         if not audio_path.exists():
             return self._error(f"Audio file not found: {audio_path}")
-        
-        print("inisde stt tool, audio file found at path: ", audio_path)
 
         max_size = 25 * 1024 * 1024  # 25 MB
         if audio_path.stat().st_size > max_size:
@@ -103,7 +101,6 @@ class SpeechToTextTool(BaseTool):
 
     async def _stt_openai(self, audio_path: Path, language: str | None) -> str:
         """Transcribe via OpenAI Whisper API."""
-        print("started stt with openai whisper api, audio path: ", audio_path)
         settings = get_settings()
         api_key = settings.openai_api_key
         if not api_key:
@@ -139,7 +136,6 @@ class SpeechToTextTool(BaseTool):
             return f"Transcription ({audio_path.name}):\n\n{text}\n\nSaved to: {output_path}"
 
         except httpx.HTTPStatusError as e:
-            print("OpenAI API error response: ", e.response.text)
             return self._error(f"Whisper API error: {e.response.status_code}")
         except Exception as e:
             return self._error(f"Transcription failed: {e}")
@@ -180,7 +176,6 @@ class SpeechToTextTool(BaseTool):
             return f"Transcription ({audio_path.name}):\n\n{text}\n\nSaved to: {output_path}"
         
         except httpx.HTTPStatusError as e:
-            print("ElevenLabs API error response: ", e.response.text)
             return self._error(f"ElevenLabs STT API error: {e.response.status_code}")
         except Exception as e:
             return self._error(f"ElevenLabs transcription failed: {e}")

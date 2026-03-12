@@ -5,6 +5,7 @@ Created: 2026-02-02
 
 import asyncio
 import logging
+from pathlib import Path
 from typing import Any
 
 try:
@@ -316,7 +317,10 @@ class TelegramAdapter(BaseChannelAdapter):
                 if media_type == "audio":
                     # TTS-generated files should be sent as voice notes;
                     # regular audio files go as audio (music player).
-                    is_tts = "generated/audio" in file_path
+                    from pocketpaw.config import get_config_dir
+                    is_tts = Path(file_path).is_relative_to(
+                        get_config_dir() / "generated" / "audio"
+                    )
                     if is_tts:
                         try:
                             await self.app.bot.send_voice(**kwargs, voice=f)

@@ -581,9 +581,6 @@ class Settings(BaseSettings):
     ocr_provider: str = Field(
         default="openai", description="OCR provider: 'openai', 'sarvam', or 'tesseract'"
     )
-    
-    # ElevenLabs STT
-    elevenlabs_stt_model: str = Field(default="scribe_v1", description="ElevenLabs model for STT")
 
     # Sarvam AI
     sarvam_api_key: str | None = Field(default=None, description="Sarvam AI API subscription key")

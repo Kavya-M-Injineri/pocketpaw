@@ -12,6 +12,7 @@ import logging
 import re
 import time
 from pathlib import Path
+from typing import Any
 
 from pocketpaw.agents.router import AgentRouter
 from pocketpaw.bootstrap import AgentContextBuilder
@@ -673,6 +674,7 @@ class AgentLoop:
             # didn't already call text_to_speech (no audio in media_paths), synthesize
             # the full response as a voice reply now.
             already_has_audio = any(Path(p).suffix.lower() in _AUDIO_EXTS for p in media_paths)
+            voice_media_paths: list[str] = []
             if (
                 is_voice_message
                 and not already_has_audio
@@ -687,12 +689,16 @@ class AgentLoop:
                     if tts_path:
                         logger.info("Auto-TTS voice reply: %s", tts_path)
                         media_paths.append(tts_path)
+                        voice_media_paths.append(tts_path)
                 except Exception as _tts_err:
                     logger.warning("Auto-TTS failed: %s", _tts_err)
 
             # Deduplicate while preserving order
             seen: set[str] = set()
             media_paths = [p for p in media_paths if not (p in seen or seen.add(p))]
+            metadata_out: dict[str, Any] = {}
+            if voice_media_paths:
+                metadata_out["voice_media_paths"] = voice_media_paths
             await self.bus.publish_outbound(
                 OutboundMessage(
                     channel=message.channel,
@@ -700,6 +706,7 @@ class AgentLoop:
                     content="",
                     is_stream_end=True,
                     media=media_paths,
+                    metadata=metadata_out,
                 )
             )
 

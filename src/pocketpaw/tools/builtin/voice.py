@@ -3,6 +3,7 @@
 # Part of Phase 2 Integration Ecosystem
 
 import logging
+import re
 import uuid
 from pathlib import Path
 from typing import Any
@@ -33,14 +34,15 @@ async def synthesize_speech(text: str) -> str | None:
     if result.startswith("Error:"):
         logger.error("synthesize_speech failed: %s", result)
         return None
-    return tool._last_generated_path
+    # Extract file path from <!-- media:path --> tag in result
+    match = re.search(r"<!-- media:([^>]+) -->", result)
+    if match:
+        return match.group(1)
+    return None
 
 
 class TextToSpeechTool(BaseTool):
     """Convert text to speech audio file."""
-
-    def __init__(self) -> None:
-        self._last_generated_path: str | None = None
 
     @property
     def name(self) -> str:
@@ -124,7 +126,6 @@ class TextToSpeechTool(BaseTool):
             output_path = _get_audio_dir() / filename
             output_path.write_bytes(resp.content)
 
-            self._last_generated_path = str(output_path)
             return self._media_result(
                 str(output_path), f"Audio generated ({len(resp.content)} bytes)"
             )
@@ -138,7 +139,7 @@ class TextToSpeechTool(BaseTool):
         """Generate speech using ElevenLabs API."""
         settings = get_settings()
         api_key = settings.elevenlabs_api_key
-        voice = voice or "pNInz6obpgDQGcFmaJgB"
+        voice = voice or settings.tts_default_voice_elevenlabs
         if not api_key:
             return self._error(
                 "ElevenLabs API key not configured. Set POCKETPAW_ELEVENLABS_API_KEY."
@@ -166,7 +167,6 @@ class TextToSpeechTool(BaseTool):
             output_path.write_bytes(audio_bytes)
 
             logger.info("ElevenLabs TTS: generated %s (%d bytes)", filename, len(audio_bytes))
-            self._last_generated_path = str(output_path)
             return self._media_result(str(output_path))
 
         except httpx.HTTPStatusError as e:
@@ -210,7 +210,6 @@ class TextToSpeechTool(BaseTool):
             output_path = _get_audio_dir() / filename
             output_path.write_bytes(audio_bytes)
 
-            self._last_generated_path = str(output_path)
             return self._media_result(
                 str(output_path), f"Audio generated ({len(audio_bytes)} bytes)"
             )

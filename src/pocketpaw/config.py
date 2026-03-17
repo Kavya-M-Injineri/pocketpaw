@@ -565,6 +565,10 @@ class Settings(BaseSettings):
     tts_voice: str = Field(
         default="alloy", description="TTS voice name (OpenAI: alloy/echo/fable/onyx/nova/shimmer)"
     )
+    tts_default_voice_elevenlabs: str = Field(
+        default="pNInz6obpgDQGcFmaJgB",
+        description="ElevenLabs default voice"
+    )
     voice_reply_enabled: bool = Field(
         default=True,
         description="Auto-synthesize TTS voice reply when the inbound message was a voice note",

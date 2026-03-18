@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from pocketpaw.a2a.client import A2AClient, _check_stream_status, _handle_response
+from pocketpaw.a2a.client import A2AClient, _check_status, _handle_response
 from pocketpaw.a2a.models import (
     A2AMessage,
     AgentCard,
@@ -51,26 +51,26 @@ def mock_task() -> Task:
 
 
 class TestA2AClient:
-    async def test_handle_response_error(self):
-        mock_response = AsyncMock(spec=httpx.Response)
+    def test_handle_response_error(self):
+        mock_response = MagicMock(spec=httpx.Response)
         mock_response.status_code = 400
         mock_response.text = "Bad Request"
 
-        error = httpx.HTTPStatusError("Error", request=AsyncMock(), response=mock_response)
+        error = httpx.HTTPStatusError("Error", request=MagicMock(), response=mock_response)
         mock_response.raise_for_status.side_effect = error
 
         with pytest.raises(RuntimeError, match="A2A remote agent error 400: Bad Request"):
             _handle_response(mock_response)
 
-    async def test_check_stream_status_error(self):
-        mock_response = AsyncMock(spec=httpx.Response)
+    def test_check_status_error(self):
+        mock_response = MagicMock(spec=httpx.Response)
         mock_response.status_code = 500
 
-        error = httpx.HTTPStatusError("Server Error", request=AsyncMock(), response=mock_response)
+        error = httpx.HTTPStatusError("Server Error", request=MagicMock(), response=mock_response)
         mock_response.raise_for_status.side_effect = error
 
         with pytest.raises(RuntimeError, match="A2A remote agent error 500"):
-            _check_stream_status(mock_response)
+            _check_status(mock_response)
 
     async def test_get_agent_card_success(self, mock_agent_card):
         client = A2AClient()
@@ -370,6 +370,18 @@ class TestSSRFProtection:
             result = await tool.execute(agent_url="ftp://evil.com", task="Help")
             assert result.startswith("Error:")
             assert "Invalid URL scheme" in result
+
+    async def test_ssrf_dns_resolution_failure(self):
+        tool = A2ADelegateTool()
+        with patch("pocketpaw.tools.builtin.a2a_delegate.get_settings") as mock_get_settings:
+            mock_get_settings.return_value.a2a_trusted_agents = []
+            target = "pocketpaw.tools.builtin.a2a_delegate.socket.getaddrinfo"
+            with patch(target) as mock_getaddrinfo:
+                mock_getaddrinfo.side_effect = socket.gaierror("Name or service not known")
+
+                result = await tool.execute(agent_url="http://nonexistent.invalid", task="Help")
+                assert result.startswith("Error:")
+                assert "Could not resolve hostname" in result
 
     async def test_ssrf_public_ip_allowed(self, mock_agent_card, mock_task):
         tool = A2ADelegateTool()

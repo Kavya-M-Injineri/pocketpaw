@@ -96,8 +96,10 @@ class A2ADelegateTool(BaseTool):
                             "denied. Add this URL to the 'a2a_trusted_agents' allowlist in "
                             "settings to permit."
                         )
+            except socket.gaierror as e:
+                return self._error(f"Could not resolve hostname '{hostname}': {e}")
             except Exception as e:
-                return self._error(f"URL validation failed: {str(e)}")
+                return self._error(f"URL validation failed: {e}")
 
         async with A2AClient() as client:
             try:
@@ -105,8 +107,8 @@ class A2ADelegateTool(BaseTool):
                 card = await client.get_agent_card(agent_url)
             except Exception as e:
                 return self._error(
-                    f"Failed to fetch Agent Card from {agent_url}: {e}\n"
-                    f"Ensure the agent is running and supports A2A."
+                    f"Failed to fetch Agent Card from {agent_url}: {e}. "
+                    "Ensure the agent is running and supports A2A."
                 )
 
             # 2. Support multi-turn by fetching history if task_id provided
@@ -122,7 +124,7 @@ class A2ADelegateTool(BaseTool):
 
                     # Preserve the message-level structure so the remote agent can
                     # distinguish its own previous responses from user turns.
-                    # DO NOT flatten parts across messages. That loses role info.
+                    # Do NOT flatten parts across messages, that loses role info.
                     history_messages = list(existing_task.history)
                 except Exception as e:
                     return self._error(
@@ -134,7 +136,7 @@ class A2ADelegateTool(BaseTool):
             new_message = A2AMessage(role="user", parts=[TextPart(text=task)])
 
             # If continuing, we MUST send the same task_id
-            send_kwargs: dict = {"message": new_message, "history": history_messages}
+            send_kwargs: dict[str, Any] = {"message": new_message, "history": history_messages}
             if task_id:
                 send_kwargs["id"] = task_id
 

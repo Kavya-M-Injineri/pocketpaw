@@ -1,4 +1,4 @@
-# A2A Protocol — Pydantic models for request/response payloads.
+# A2A Protocol: Pydantic models for request/response payloads.
 #
 # Follows the A2A Protocol specification (v0.2.5+):
 # https://google.github.io/A2A/specification/
@@ -154,10 +154,11 @@ class TaskSendParams(BaseModel):
     context_id: str | None = None
     session_id: str | None = None
     message: A2AMessage
-    # Structured conversation history (preserves role/turn boundaries).
-    # Pass the prior A2AMessage objects here rather than flattening their
-    # parts into the current message — the remote agent needs to distinguish
-    # its own previous responses from user turns.
+    # PocketPaw extension: structured conversation history (preserves role/turn
+    # boundaries). Pass prior A2AMessage objects here rather than flattening their
+    # parts into the current message. The remote agent needs to distinguish its own
+    # previous responses from user turns. Not part of the base A2A spec; remote
+    # agents that don't understand this field will simply ignore it.
     history: list[A2AMessage] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -187,7 +188,7 @@ class AgentSkill(BaseModel):
 
 
 class AgentCard(BaseModel):
-    """A2A Agent Card -- advertised at /.well-known/agent.json."""
+    """A2A Agent Card, advertised at /.well-known/agent.json."""
 
     name: str
     description: str

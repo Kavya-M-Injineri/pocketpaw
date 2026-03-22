@@ -368,7 +368,7 @@ pip install uv
 
 ```bash
 # 1. Verify Python version
-python3 --version
+python3 --version 
 
 # 2. Clone and enter the repository
 git clone https://github.com/pocketpaw/pocketpaw.git && cd pocketpaw

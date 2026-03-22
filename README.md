@@ -75,7 +75,8 @@ python3 -m pip install --upgrade pip
 
 # 3. Create and activate virtual environment (optional but recommended)
 python3 -m venv pocketpaw-env
-source pocketpaw-env/bin/activate
+source pocketpaw-env/bin/activate  # macOS/Linux
+# Windows: pocketpaw-env\Scripts\activate
 
 # 4. Install PocketPaw
 pip install pocketpaw
@@ -121,12 +122,10 @@ powershell -NoExit -Command "iwr -useb https://pocketpaw.xyz/install.ps1 | iex"
    python -m pip install --upgrade pip
    ```
 
-3. (Optional but recommended) Create and activate a virtual environment:
-
-   ```powershell
-   python -m venv pocketpaw-env
-   .\pocketpaw-env\Scripts\Activate.ps1
-   ```
+3. Create and activate virtual environment (optional but recommended)
+   python3 -m venv pocketpaw-env
+   source pocketpaw-env/bin/activate  # macOS/Linux
+   # Windows: pocketpaw-env\Scripts\activate
 
 4. Install PocketPaw:
 

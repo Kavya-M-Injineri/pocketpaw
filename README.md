@@ -122,10 +122,12 @@ powershell -NoExit -Command "iwr -useb https://pocketpaw.xyz/install.ps1 | iex"
    python -m pip install --upgrade pip
    ```
 
-3. Create and activate virtual environment (optional but recommended)
-   python3 -m venv pocketpaw-env
-   source pocketpaw-env/bin/activate  # macOS/Linux
-   # Windows: pocketpaw-env\Scripts\activate
+3. Create and activate virtual environment (optional but recommended):
+
+   ```powershell
+   python -m venv pocketpaw-env
+   .\pocketpaw-env\Scripts\Activate.ps1
+   ```
 
 4. Install PocketPaw:
 
@@ -363,6 +365,7 @@ See the [full configuration reference](https://pocketpaw.xyz/getting-started/con
 
 > [!WARNING]
 > **Windows users:** You must **open a new terminal window** after running the install script below before `uv` will be recognized. The installer updates your PATH, but this change does not apply to your current terminal session — running `uv` immediately after install will give a `CommandNotFoundException` error.
+
 ```bash
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -385,7 +388,7 @@ pip install uv
 
 ```bash
 # 1. Verify Python version
-python3 --version 
+python3 --version
 
 # 2. Clone and enter the repository
 git clone https://github.com/pocketpaw/pocketpaw.git && cd pocketpaw

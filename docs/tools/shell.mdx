@@ -9,3 +9,28 @@ The agent can invoke shell commands when required to perform operations such as 
 Example:
 ```bash
 ls
+
+Lists files in the current working directory.
+
+Integration
+
+The shell tool is a built-in capability and is automatically utilized by the agent when tasks require system interaction.
+
+Tool Policy
+
+Access to the shell tool is governed by the tool policy configuration.
+
+allow — execute commands without confirmation
+confirm — require user approval before execution
+deny — disable shell access entirely
+Plan Mode
+
+When Plan Mode is enabled, shell command execution may require explicit user approval before proceeding. This ensures safer handling of system-level operations.
+
+Security Considerations
+
+Shell access can modify the system state and should be used with caution.
+
+Commands may require approval depending on policy settings
+Access should be restricted in sensitive or production environments
+Avoid executing untrusted or potentially harmful commands

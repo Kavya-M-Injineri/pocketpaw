@@ -12,22 +12,23 @@ ls
 ```
 Lists files in the current working directory.
 
-Integration
+### Integration
 
 The shell tool is a built-in capability and is automatically utilized by the agent when tasks require system interaction.
 
-Tool Policy
+### Tool Policy
 
 Access to the shell tool is governed by the tool policy configuration.
 
 allow — execute commands without confirmation
 confirm — require user approval before execution
 deny — disable shell access entirely
-Plan Mode
+
+### Plan Mode
 
 When Plan Mode is enabled, shell command execution may require explicit user approval before proceeding. This ensures safer handling of system-level operations.
 
-Security Considerations
+### Security Considerations
 
 Shell access can modify the system state and should be used with caution.
 
@@ -35,7 +36,7 @@ Commands may require approval depending on policy settings
 Access should be restricted in sensitive or production environments
 Avoid executing untrusted or potentially harmful commands
 
-Notes
+### Notes
 
 Works best in Linux or WSL environments
 Behavior depends on system configuration
